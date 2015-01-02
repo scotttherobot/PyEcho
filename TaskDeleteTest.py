@@ -10,8 +10,8 @@ echo = PyEcho.PyEcho(email, password)
 if echo:
    tasks = echo.allTasks()
    print tasks
-   # for task in tasks:
-      # res = echo.deleteTask(task)
-      # print res
-      # print res.text
+   for task in tasks:
+      res = echo.deleteTask(task)
+      print res
+      print res.text
 
