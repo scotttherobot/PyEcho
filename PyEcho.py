@@ -9,7 +9,7 @@ class PyEcho:
    email = ""
    password = ""
    session = False
-    csrf = "-2092727538"
+   csrf = "-2092727538"
 
    def __init__(self, email, password):
       self.email = email 
@@ -17,6 +17,7 @@ class PyEcho:
       self.session = requests.Session()
       self.login()
 
+   ## Log in to the Amazon Echo API
    def login(self):
       print "logging in..."
 
@@ -49,52 +50,72 @@ class PyEcho:
          print "Error logging in! Got status " + str(login.status_code)
       else:
          print "Login success!"
-         # print self.session.cookies
-         # print BeautifulSoup(login.text).prettify()
 
-         # We need to set a CSRF cookie. CSRF validation works like this:
-         # The CSRF cookie has to match the CSRF header. Doesn't matter
-         # what the actual value is, they just gotta match.
-         csrf = cookielib.Cookie(name="csrf", value=self.csrf,
-               domain=".amazon.com", path="/", expires=None,
-               secure="false", domain_specified=True,
-               domain_initial_dot=True, discard=True,
-               rest=None, rfc2109=True,
-               comment=None, comment_url=None,
-               port=None, port_specified=False,
-               version=1, path_specified=True)
-         self.session.cookies.set_cookie(csrf)
-         print self.session.cookies
-
-   def get(self, url, data=False):
-      headers = self.getHeaders()
-      return self.session.get(self.url + url, headers=headers, params=data)
-
-   def allTasks(self):
+   def tasks(self):
       params = {'type':'TASK', 'size':'10'}
       tasks = self.get('/api/todos', params)
       return json.loads(tasks.text)['values']
 
-   ## TODO: Investigate this.
-   ## Okay so we're setting the csrf header and cookie now, so this should
-   ## work, but something is still fishy. All PUT requests that I have
-   ## tried have been responded to with a "max retries exceeded" error
-   ## and a BadStatusLine exception.
-   def put(self, url, payload):
-      headers = self.getHeaders()
-      headers['content-type'] = 'application/json'
-      headers['csrf'] = self.csrf
-      return self.session.put(self.url + url, data=payload, headers=headers)
-   
-   ## TODO: This won't work yet. See above TODO.
    def deleteTask(self, task):
       task['deleted'] = True
       return self.put('/api/todos/' + urllib.quote_plus(task['itemId']), task)
 
+   def devices(self):
+      devices = self.get('/api/devices/device')
+      return json.loads(devices.text)['devices']
+
+   def cards(self):
+      params = {'limit':'10'}
+      cards = self.get('/api/cards', params)
+      return json.loads(cards.text)['cards']
+   
+   def notifications(self):
+      notes = self.get('/api/notifications')
+      return json.loads(notes.text)['notifications']
+
+   def services(self):
+      services = self.get('/api/third-party')
+      return json.loads(services.text)['services']
+
+   def preferences(self):
+      prefs = self.get('/api/device-preferences')
+      return json.loads(prefs.text)['devicePreferences']
+
+   def wakeWords(self):
+      words = self.get('/api/wake-word')
+      return json.loads(words.text)['wakeWords']
+
+   #####
+   ## Helper functions are below
+   #####
+
+   ## Make an authenticated GET request
+   def get(self, url, data=False):
+      headers = self.getHeaders()
+      return self.session.get(self.url + url, headers=headers, params=data)
+
+   ## Make an authenticated PUT request
+   def put(self, url, payload):
+      headers = self.getHeaders()
+      headers['Content-type'] = 'application/json'
+      headers['csrf'] = self.getCsrfCookie()
+      headers['Accept'] = 'application/json, text/javascript, */*; q=0.01'
+      return self.session.put(url=self.url + url, data=json.dumps(payload), headers=headers)
+
+   ## Fetch the CSRF token from the cookie jar, set by the server.
+   ## CookieLib's documentation is really not great, at least that I could find
+   ## so in order to get our csrf token from the cookie, we have to iterate
+   ## over the jar and match by name. Fine. Whatever.
+   def getCsrfCookie(self):
+      for cookie in self.session.cookies:
+         if cookie.name == "csrf":
+            return cookie.value
+   
+   ## Prepare common headers that we send with all requests.
    def getHeaders(self):
       headers = {}
       headers['User-Agent'] = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.13) Gecko/20101206 Ubuntu/10.10 (maverick) Firefox/3.6.13'
-      headers['charset'] = 'utf-8'
-      headers['origin'] = 'http://echo.amazon.com'
-      headers['referer'] = 'http://echo.amazon.com/spa/index.html'
+      headers['Charset'] = 'utf-8'
+      headers['Origin'] = 'http://echo.amazon.com'
+      headers['Referer'] = 'http://echo.amazon.com/spa/index.html'
       return headers

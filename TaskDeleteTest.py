@@ -8,7 +8,7 @@ password = getpass.getpass()
 echo = PyEcho.PyEcho(email, password)
 
 if echo:
-   tasks = echo.allTasks()
+   tasks = echo.tasks()
    print tasks
    for task in tasks:
       res = echo.deleteTask(task)
