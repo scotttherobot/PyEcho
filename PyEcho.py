@@ -1,6 +1,6 @@
 # A Python class for connection to the Amazon Echo API
 # By Scott Vanderlind, December 31 2014
-import requests
+import requests, json, urllib
 from bs4 import BeautifulSoup
 
 class PyEcho:
@@ -48,11 +48,31 @@ class PyEcho:
          print "Error logging in! Got status " + str(login.status_code)
       else:
          print "Login success!"
-         #print BeautifulSoup(login.text).prettify()
+         # print BeautifulSoup(login.text).prettify()
 
-   def get(self, url):
+   def get(self, url, data=False):
       headers = self.getHeaders()
-      return self.session.get(self.url + url, headers=headers)
+      return self.session.get(self.url + url, headers=headers, params=data)
+
+   def allTasks(self):
+      params = {'type':'TASK', 'size':'10'}
+      tasks = self.get('/api/todos', params)
+      return json.loads(tasks.text)['values']
+
+   ## TODO: We need the CSRF token for the put request to work. How do we get
+   ##       that? Not sure. I'd expect it to be in the page somewhere, but
+   ##       since Amazon knows our browser doesn't do JS, it doesn't give it
+   ##       to us. But in theory this will work.
+   def put(self, url, payload):
+      headers = self.getHeaders()
+      headers['content-type'] = 'application/json'
+      headers['csrf'] = ''
+      return self.session.put(self.url + url, data=payload, headers=headers)
+   
+   ## TODO: This won't work yet. See above TODO.
+   def deleteTask(self, task):
+      task['deleted'] = True
+      return self.put('/api/todos/' + urllib.quote_plus(task['itemId']), task)
 
    def getHeaders(self):
       headers = {}
