@@ -9,6 +9,7 @@ class PyEcho:
    email = ""
    password = ""
    session = False
+   loginsuccess = False
    csrf = "-2092727538"
 
    def __init__(self, email, password):
@@ -46,10 +47,12 @@ class PyEcho:
       # Now, we can create a new post request to log in
       login = self.session.post(action, data=parameters, headers=headers)
 
-      if login.status_code != 200:
+      if 'x-amzn-requestid' not in login.headers:
          print "Error logging in! Got status " + str(login.status_code)
+         self.loginsuccess = False
       else:
          print "Login success!"
+         self.loginsuccess = True
 
    def tasks(self):
       params = {'type':'TASK', 'size':'10'}
