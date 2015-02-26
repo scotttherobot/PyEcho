@@ -58,10 +58,19 @@ class PyEcho:
       params = {'type':'TASK', 'size':'10'}
       tasks = self.get('/api/todos', params)
       return json.loads(tasks.text)['values']
+    
+   def shoppingitems(self):
+      params = {'type':'SHOPPING_ITEM', 'size':'10'}
+      items = self.get('/api/todos', params)
+      return json.loads(items.text)['values']
 
    def deleteTask(self, task):
       task['deleted'] = True
       return self.put('/api/todos/' + urllib.quote_plus(task['itemId']), task)
+
+   def deleteShoppingItem(self, item):
+      item['deleted'] = True
+      return self.put('/api/todos/' + urllib.quote_plus(item['itemId']), item)
 
    def devices(self):
       devices = self.get('/api/devices/device')
