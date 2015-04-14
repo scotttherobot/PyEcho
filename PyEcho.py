@@ -9,6 +9,7 @@ class PyEcho:
    email = ""
    password = ""
    session = False
+   loginsuccess = False
    csrf = "-2092727538"
 
    def __init__(self, email, password):
@@ -46,19 +47,30 @@ class PyEcho:
       # Now, we can create a new post request to log in
       login = self.session.post(action, data=parameters, headers=headers)
 
-      if login.status_code != 200:
+      if 'x-amzn-requestid' not in login.headers:
          print "Error logging in! Got status " + str(login.status_code)
+         self.loginsuccess = False
       else:
          print "Login success!"
+         self.loginsuccess = True
 
    def tasks(self):
       params = {'type':'TASK', 'size':'10'}
       tasks = self.get('/api/todos', params)
       return json.loads(tasks.text)['values']
+    
+   def shoppingitems(self):
+      params = {'type':'SHOPPING_ITEM', 'size':'10'}
+      items = self.get('/api/todos', params)
+      return json.loads(items.text)['values']
 
    def deleteTask(self, task):
       task['deleted'] = True
       return self.put('/api/todos/' + urllib.quote_plus(task['itemId']), task)
+
+   def deleteShoppingItem(self, item):
+      item['deleted'] = True
+      return self.put('/api/todos/' + urllib.quote_plus(item['itemId']), item)
 
    def devices(self):
       devices = self.get('/api/devices/device')
