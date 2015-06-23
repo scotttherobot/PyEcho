@@ -126,7 +126,7 @@ class PyEcho:
    ## Prepare common headers that we send with all requests.
    def getHeaders(self):
       headers = {}
-      headers['User-Agent'] = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.13) Gecko/20101206 Ubuntu/10.10 (maverick) Firefox/3.6.13'
+      headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A'
       headers['Charset'] = 'utf-8'
       headers['Origin'] = 'http://echo.amazon.com'
       headers['Referer'] = 'http://echo.amazon.com/spa/index.html'
